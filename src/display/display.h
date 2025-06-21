@@ -37,4 +37,6 @@ void kputc(const char c, int c_row, int c_col);
 
 void kprint(const char *message);
 
+void kstatus(const char *item, int item_color, const char *status);
+
 #endif

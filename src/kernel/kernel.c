@@ -1,4 +1,4 @@
-#include "display/display.h"
+#include "../display/display.h"
 #include "../arch/fpu.h"
 
 __attribute__((section(".multiboot")))
@@ -9,9 +9,10 @@ unsigned int multiboot_header[] = {
 };
 
 void kmain() {
-    fpu_init();
     kclear();
-    kprint("silly.iso v1.0");
+    fpu_init();
+    
+    kstatus("kernel", VGA_CYAN, "silly OS v1.0");
 
     while (1) {
         __asm__ volatile ("hlt");

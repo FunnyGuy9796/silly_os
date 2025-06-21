@@ -49,7 +49,7 @@ bool kascii(const char c) {
 }
 
 void kcolor(int bg_color, int fg_color) {
-    color = (fg_color << 4) | (bg_color & 0x0f);
+    color = (bg_color << 4) | (fg_color & 0x0f);
 }
 
 void kclear() {
@@ -81,4 +81,14 @@ void kprint(const char *message) {
     for (int i = 0; message[i] != '\0'; i++) {
         kputc(message[i], row, col);
     }
+}
+
+void kstatus(const char *item, int item_color, const char *status) {
+    kprint("-- ");
+    kcolor(VGA_BLACK, item_color);
+    kprint(item);
+    kcolor(VGA_BLACK, VGA_WHITE);
+    kprint(" --\t");
+    kprint(status);
+    kprint("\n");
 }
