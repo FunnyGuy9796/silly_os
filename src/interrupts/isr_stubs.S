@@ -31,6 +31,7 @@ isr_dummy:
 .macro ISR_NO_ERR_CODE num
 isr\num:
     cli
+    pushl $0
     pushl $\num
     pushal
     pushl %ds
@@ -39,7 +40,7 @@ isr\num:
     call isr_common_stub
     popl %ds
     popal
-    add $4, %esp
+    add $8, %esp
     sti
     iret
 .endm
@@ -55,7 +56,7 @@ isr\num:
     call isr_common_stub
     popl %ds
     popal
-    add $4, %esp
+    add $8, %esp
     sti
     iret
 .endm
