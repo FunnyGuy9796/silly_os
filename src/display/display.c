@@ -55,10 +55,13 @@ void kcolor(int bg_color, int fg_color) {
 void kclear() {
     for (int i = 0; i < VGA_ROWS; i++) {
         for (int j = 0; j < VGA_COLS; j++) {
-            video[i * 2] = ' ';
-            video[i * 2 + 1] = 0x00;
+            int offset = (i * VGA_COLS + j) * 2;
+            video[offset] = ' ';
+            video[offset + 1] = color;
         }
     }
+    row = 0;
+    col = 0;
 }
 
 void kputc(const char c, int c_row, int c_col) {
@@ -81,14 +84,4 @@ void kprint(const char *message) {
     for (int i = 0; message[i] != '\0'; i++) {
         kputc(message[i], row, col);
     }
-}
-
-void kstatus(const char *item, int item_color, const char *status) {
-    kprint("-- ");
-    kcolor(VGA_BLACK, item_color);
-    kprint(item);
-    kcolor(VGA_BLACK, VGA_WHITE);
-    kprint(" --\t");
-    kprint(status);
-    kprint("\n");
 }

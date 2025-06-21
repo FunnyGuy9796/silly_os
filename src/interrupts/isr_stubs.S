@@ -1,0 +1,93 @@
+.global isr_dummy
+isr_dummy:
+    iret
+
+.global isr0
+.global isr1
+.global isr2
+.global isr3
+.global isr4
+.global isr5
+.global isr6
+.global isr7
+.global isr8
+.global isr10
+.global isr11
+.global isr12
+.global isr13
+.global isr14
+.global isr16
+.global isr17
+.global isr18
+.global isr19
+.global isr20
+.global isr21
+.global isr28
+.global isr29
+.global isr30
+
+.section .text
+
+.macro ISR_NO_ERR_CODE num
+isr\num:
+    cli
+    pushl $\num
+    pushal
+    pushl %ds
+    mov $0x10, %ax
+    mov %ax, %ds
+    call isr_common_stub
+    popl %ds
+    popal
+    add $4, %esp
+    sti
+    iret
+.endm
+
+.macro ISR_ERR_CODE num
+isr\num:
+    cli
+    pushl $\num
+    pushal
+    pushl %ds
+    mov $0x10, %ax
+    mov %ax, %ds
+    call isr_common_stub
+    popl %ds
+    popal
+    add $4, %esp
+    sti
+    iret
+.endm
+
+ISR_NO_ERR_CODE 0
+ISR_NO_ERR_CODE 1
+ISR_NO_ERR_CODE 2
+ISR_NO_ERR_CODE 3
+ISR_NO_ERR_CODE 4
+ISR_NO_ERR_CODE 5
+ISR_NO_ERR_CODE 6
+ISR_NO_ERR_CODE 7
+ISR_NO_ERR_CODE 16
+ISR_NO_ERR_CODE 18
+ISR_NO_ERR_CODE 19
+ISR_NO_ERR_CODE 20
+ISR_NO_ERR_CODE 28
+ISR_ERR_CODE 8
+ISR_ERR_CODE 10
+ISR_ERR_CODE 11
+ISR_ERR_CODE 12
+ISR_ERR_CODE 13
+ISR_ERR_CODE 14
+ISR_ERR_CODE 17
+ISR_ERR_CODE 21
+ISR_ERR_CODE 29
+ISR_ERR_CODE 30
+
+.global isr_common_stub
+isr_common_stub:
+    movl %esp, %eax
+    pushl %eax
+    call isr_handler
+    addl $4, %esp
+    ret

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "../io/byte.h"
+#include "../misc/byte.h"
 
 #define VGA_ROWS 25
 #define VGA_COLS 80
@@ -27,6 +27,9 @@ enum term_colors {
     VGA_WHITE = 15
 };
 
+extern int row;
+extern int col;
+
 bool kascii(const char c);
 
 void kcolor(int bg_color, int fg_color);
@@ -36,7 +39,5 @@ void kclear();
 void kputc(const char c, int c_row, int c_col);
 
 void kprint(const char *message);
-
-void kstatus(const char *item, int item_color, const char *status);
 
 #endif

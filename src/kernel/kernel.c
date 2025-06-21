@@ -1,5 +1,8 @@
 #include "../display/display.h"
-#include "../arch/fpu.h"
+#include "../display/printf.h"
+#include "../init/fpu.h"
+#include "../init/gdt.h"
+#include "../interrupts/idt.h"
 
 __attribute__((section(".multiboot")))
 unsigned int multiboot_header[] = {
@@ -11,8 +14,15 @@ unsigned int multiboot_header[] = {
 void kmain() {
     kclear();
     fpu_init();
+    gdt_init();
+    idt_init();
+    enable_interrupts();
+
+    kprintf("[info] interrupts enabled\n");
     
-    kstatus("kernel", VGA_CYAN, "silly OS v1.0");
+    kprintf("\nsilly OS v%d\n\n", 1);
+
+    kprintf("[warn] nothing to do, halting system...\n");
 
     while (1) {
         __asm__ volatile ("hlt");
