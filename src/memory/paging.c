@@ -11,6 +11,15 @@ void paging_init() {
 
     page_directory[0] = ((uint32_t)first_page_table) | PAGE_PRESENT | PAGE_RW;
 
+    static uint32_t second_page_table[1024] __attribute__((aligned(4096)));
+
+    memset(second_page_table, 0, sizeof(second_page_table));
+
+    for (int i = 0; i < 1024; i++)
+        second_page_table[i] = ((i + 1024) * PAGE_SIZE) | PAGE_PRESENT | PAGE_RW;
+
+    page_directory[1] = ((uint32_t)second_page_table) | PAGE_PRESENT | PAGE_RW;
+
     asm volatile("mov %0, %%cr3" :: "r"(page_directory));
 
     uint32_t cr0;
@@ -32,11 +41,6 @@ uint32_t *create_page_table() {
     }
 
     uint32_t phys = frame * PAGE_SIZE;
-
-    if (phys >= 0x400000) {
-        kpanic("create_page_table(): allocated frame beyond identity-mapped region: 0x%x\n", phys);
-        return NULL;
-    }
 
     uint32_t *page_table = (uint32_t *)phys_to_virt(phys);
 
