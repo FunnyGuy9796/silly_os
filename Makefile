@@ -42,7 +42,7 @@ silly.iso: kernel.bin
 	grub2-mkrescue -o silly.iso build/iso
 
 run: silly.iso
-	qemu-system-i386 -cdrom silly.iso -monitor stdio -d int,cpu_reset -m 4G
+	qemu-system-i386 -cdrom silly.iso -m 4G -rtc base=localtime
 
 clean:
 	rm -rf build *.o *.bin *.iso

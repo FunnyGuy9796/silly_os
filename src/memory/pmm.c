@@ -64,7 +64,7 @@ void pmm_init(multiboot_info_t *mb_info, uint32_t k_end) {
         pmm_set(i);
     }
 
-    kstatus("info", "pmm initialized\n\tbitmap stored at address: 0x%x\n\ttotal available memory: %.2fGB\n", aligned_k_end, (double)total_memory / 1073741824.0);
+    kstatus("debug", "pmm initialized\n\tbitmap stored at address: 0x%x\n\ttotal available memory: %.2fGB\n", aligned_k_end, (double)total_memory / 1073741824.0);
 }
 
 int32_t pmm_alloc() {

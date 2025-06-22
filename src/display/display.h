@@ -39,7 +39,7 @@ void kclear();
 
 void kscroll();
 
-void kputc(const char c, int c_row, int c_col);
+void kputc(const char c);
 
 void kprint(const char *message);
 

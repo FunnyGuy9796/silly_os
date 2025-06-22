@@ -2,7 +2,7 @@
 
 uint32_t get_mmap(multiboot_info_t *mb_info) {
     if (mb_info->flags & (1 << 6)) {
-        kstatus("info", "found memory map\n");
+        kstatus("debug", "found memory map\n");
 
         uint32_t mmap_end = mb_info->mmap_addr + mb_info->mmap_length;
         multiboot_memory_map_t *mmap = (multiboot_memory_map_t *)mb_info->mmap_addr;

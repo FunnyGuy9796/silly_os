@@ -23,7 +23,7 @@ void kheap_init() {
     free_list->free = 1;
     free_list->next = NULL;
 
-    kstatus("info", "kernel heap initialized\n\tstarting address: 0x%x\n", KHEAP_START);
+    kstatus("debug", "kernel heap initialized\n\tstarting address: 0x%x\n", KHEAP_START);
 }
 
 void kheap_exp(uint32_t new_size) {
@@ -43,7 +43,7 @@ void kheap_exp(uint32_t new_size) {
         heap_end += PAGE_SIZE;
     }
 
-    kstatus("info", "kernel heap expanded: 0x%x\n", heap_end);
+    kstatus("debug", "kernel heap expanded: 0x%x\n", heap_end);
 }
 
 void *kmalloc(uint32_t size, uint8_t align) {

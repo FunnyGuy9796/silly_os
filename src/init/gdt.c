@@ -27,5 +27,5 @@ void gdt_init() {
 
     gdt_flush((uint32_t)&gp);
 
-    kstatus("info", "gdt initialized\n");
+    kstatus("debug", "gdt initialized\n");
 }

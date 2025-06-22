@@ -82,9 +82,7 @@ void kscroll() {
     row = VGA_ROWS - 1;
 }
 
-void kputc(const char c, int c_row, int c_col) {
-    int offset = (c_row * VGA_COLS + c_col) * 2;
-
+void kputc(const char c) {
     if (kascii(c))
         return;
 
@@ -95,6 +93,8 @@ void kputc(const char c, int c_row, int c_col) {
 
     if (row >= VGA_ROWS)
         kscroll();
+    
+    int offset = (row * VGA_COLS + col) * 2;
 
     video[offset] = c;
     video[offset + 1] = color;
@@ -105,6 +105,6 @@ void kputc(const char c, int c_row, int c_col) {
 
 void kprint(const char *message) {
     for (int i = 0; message[i] != '\0'; i++) {
-        kputc(message[i], row, col);
+        kputc(message[i]);
     }
 }

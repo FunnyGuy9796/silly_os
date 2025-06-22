@@ -25,6 +25,7 @@ isr_dummy:
 .global isr28
 .global isr29
 .global isr30
+.global isr32
 
 .section .text
 
@@ -56,6 +57,7 @@ ISR_NO_ERR_CODE 18
 ISR_NO_ERR_CODE 19
 ISR_NO_ERR_CODE 20
 ISR_NO_ERR_CODE 28
+ISR_NO_ERR_CODE 32
 ISR_ERR_CODE 8
 ISR_ERR_CODE 10
 ISR_ERR_CODE 11

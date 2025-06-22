@@ -16,5 +16,12 @@ void pic_remap() {
     outb(PIC1_DATA, a1);
     outb(PIC2_DATA, a2);
 
-    kstatus("info", "pic remapped\n");
+    kstatus("debug", "pic remapped\n");
+}
+
+void pic_send_eoi(uint8_t irq) {
+    if (irq >= 8)
+        outb(PIC2_COMMAND, PIC_EOI);
+    
+    outb(PIC1_COMMAND, PIC_EOI);
 }

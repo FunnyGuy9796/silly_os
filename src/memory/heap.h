@@ -23,4 +23,6 @@ void kheap_init();
 
 void *kmalloc(uint32_t size, uint8_t align);
 
+void kfree(void *ptr);
+
 #endif

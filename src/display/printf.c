@@ -7,6 +7,19 @@ void kvprintf(const char *format, va_list args) {
         if (format[i] == '%' && format[i + 1] != '\0') {
             i++;
 
+            int zero_pad = 0;
+            int width = 0;
+
+            while (format[i] == '0') {
+                zero_pad = 1;
+                i++;
+            }
+
+            while (format[i] >= '0' && format[i] <= '9') {
+                width = width * 10 + (format[i] - '0');
+                i++;
+            }
+
             int precision = 6;
 
             if (format[i] == '.') {
@@ -31,6 +44,14 @@ void kvprintf(const char *format, va_list args) {
                     int num = va_arg(args, int);
 
                     itoa(num, buffer, 10);
+
+                    int len = 0;
+                    
+                    for (const char *p = buffer; *p; p++) len++;
+
+                    for (int pad = len; pad < width; pad++)
+                        kputc(zero_pad ? '0' : ' ');
+
                     kprint(buffer);
 
                     break;
@@ -39,6 +60,14 @@ void kvprintf(const char *format, va_list args) {
                     unsigned int num = va_arg(args, unsigned int);
 
                     itoa(num, buffer, 10);
+
+                    int len = 0;
+                    
+                    for (const char *p = buffer; *p; p++) len++;
+
+                    for (int pad = len; pad < width; pad++)
+                        kputc(zero_pad ? '0' : ' ');
+
                     kprint(buffer);
 
                     break;
@@ -47,6 +76,14 @@ void kvprintf(const char *format, va_list args) {
                     double num = va_arg(args, double);
 
                     ftoa(num, buffer, precision);
+
+                    int len = 0;
+                    
+                    for (const char *p = buffer; *p; p++) len++;
+
+                    for (int pad = len; pad < width; pad++)
+                        kputc(zero_pad ? '0' : ' ');
+
                     kprint(buffer);
 
                     break;
@@ -55,6 +92,14 @@ void kvprintf(const char *format, va_list args) {
                     unsigned int num = va_arg(args, unsigned int);
 
                     itoa(num, buffer, 16);
+
+                    int len = 0;
+                    
+                    for (const char *p = buffer; *p; p++) len++;
+
+                    for (int pad = len; pad < width; pad++)
+                        kputc(zero_pad ? '0' : ' ');
+
                     kprint(buffer);
 
                     break;
@@ -62,7 +107,7 @@ void kvprintf(const char *format, va_list args) {
                 case 'c': {
                     char c = (char)va_arg(args, int);
 
-                    kputc(c, row, col);
+                    kputc(c);
 
                     break;
                 }
@@ -77,25 +122,25 @@ void kvprintf(const char *format, va_list args) {
                     for (const char *p = buffer; *p; p++) len++;
 
                     for (int i = len; i < 8; i++)
-                        kputc('0', row, col);
+                        kputc('0');
                     
                     kprint(buffer);
 
                     break;
                 }
                 case '%': {
-                    kputc('%', row, col);
+                    kputc('%');
 
                     break;
                 }
                 default:
-                    kputc('%', row, col);
-                    kputc(format[i], row, col);
+                    kputc('%');
+                    kputc(format[i]);
 
                     break;
             }
         } else
-            kputc(format[i], row, col);
+            kputc(format[i]);
     }
 }
 
@@ -114,6 +159,8 @@ void kstatus(const char *category, const char *format, ...) {
 
     if (strcmp(category, "info") == 0)
         kcolor(VGA_BLACK, VGA_CYAN);
+    else if (strcmp(category, "debug") == 0)
+        kcolor(VGA_BLACK, VGA_GREEN);
     else if (strcmp(category, "warn") == 0)
         kcolor(VGA_BLACK, VGA_YELLOW);
     else if (strcmp(category, "error") == 0)

@@ -28,7 +28,7 @@ void paging_init() {
     cr0 |= 0x80000000;
     asm volatile("mov %0, %%cr0" :: "r"(cr0));
 
-    kstatus("info", "paging initialized\n\tfirst 4MB of memory identity mapped\n");
+    kstatus("debug", "paging initialized\n\tfirst 4MB of memory identity mapped\n");
 }
 
 uint32_t *create_page_table() {

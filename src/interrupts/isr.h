@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "../display/display.h"
 #include "../display/printf.h"
+#include "../pic/pic.h"
+#include "../timer/timer.h"
 
 typedef struct regs {
     uint32_t ds;
