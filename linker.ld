@@ -1,10 +1,15 @@
-ENTRY(kmain)
+ENTRY(start)
 
 SECTIONS {
     . = 1M;
 
+    _start = .;
+
+    .multiboot : {
+        KEEP(*(.multiboot))
+    }
+
     .text : {
-        *(.multiboot)
         *(.text*)
     }
 
@@ -14,4 +19,6 @@ SECTIONS {
         *(.bss*)
         *(COMMON)
     }
+
+    _end = .;
 }

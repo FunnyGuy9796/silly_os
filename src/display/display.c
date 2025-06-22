@@ -64,18 +64,41 @@ void kclear() {
     col = 0;
 }
 
+void kscroll() {
+    if (row < VGA_ROWS)
+        return;
+    
+    int line_size = VGA_COLS * 2;
+
+    memcpy((void*)video, (void*)(video + line_size), (VGA_ROWS - 1) * line_size);
+
+    int last_line_offset = (VGA_ROWS - 1) * line_size;
+
+    for (int i = 0; i < VGA_COLS; i++) {
+        video[last_line_offset + i * 2] = ' ';
+        video[last_line_offset + i * 2 + 1] = color;
+    }
+
+    row = VGA_ROWS - 1;
+}
+
 void kputc(const char c, int c_row, int c_col) {
     int offset = (c_row * VGA_COLS + c_col) * 2;
 
     if (kascii(c))
         return;
 
+    if (col >= VGA_COLS) {
+        col = 0;
+        row++;
+    }
+
+    if (row >= VGA_ROWS)
+        kscroll();
+
     video[offset] = c;
     video[offset + 1] = color;
     col++;
-
-    if (col >= VGA_COLS)
-        row++;
 
     kcursor(row, col);
 }

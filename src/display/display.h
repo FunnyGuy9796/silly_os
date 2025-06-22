@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "../misc/byte.h"
+#include "../misc/mem.h"
 
 #define VGA_ROWS 25
 #define VGA_COLS 80
@@ -35,6 +36,8 @@ bool kascii(const char c);
 void kcolor(int bg_color, int fg_color);
 
 void kclear();
+
+void kscroll();
 
 void kputc(const char c, int c_row, int c_col);
 

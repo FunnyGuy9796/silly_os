@@ -41,7 +41,7 @@ void idt_init() {
     idtp.limit = (sizeof(struct idt_entry) * IDT_ENTRIES) - 1;
     idtp.base = (uint32_t)&idt;
 
-    for (int i = 0; i < IDT_ENTRIES; i++)
+    for (int i = 32; i < IDT_ENTRIES; i++)
         idt_set_gate(i, (uint32_t)isr_dummy, 0x08, 0x8e);
     
     idt_set_gate(0, (uint32_t)isr0, 0x08, 0x8E);
@@ -70,5 +70,5 @@ void idt_init() {
     
     idt_load((uint32_t)&idtp);
 
-    kprintf("[info] idt initialized\n");
+    kstatus("info", "idt initialized\n");
 }

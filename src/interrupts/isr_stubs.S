@@ -32,33 +32,15 @@ isr_dummy:
 isr\num:
     cli
     pushl $0
-    pushl $\num
-    pushal
-    pushl %ds
-    mov $0x10, %ax
-    mov %ax, %ds
-    call isr_common_stub
-    popl %ds
-    popal
-    add $8, %esp
-    sti
-    iret
+    pushl $\num       # Push interrupt number
+    jmp isr_common_stub
 .endm
 
 .macro ISR_ERR_CODE num
 isr\num:
     cli
     pushl $\num
-    pushal
-    pushl %ds
-    mov $0x10, %ax
-    mov %ax, %ds
-    call isr_common_stub
-    popl %ds
-    popal
-    add $8, %esp
-    sti
-    iret
+    jmp isr_common_stub
 .endm
 
 ISR_NO_ERR_CODE 0
@@ -87,8 +69,18 @@ ISR_ERR_CODE 30
 
 .global isr_common_stub
 isr_common_stub:
-    movl %esp, %eax
-    pushl %eax
+    pushal
+    pushl %ds
+    
+    mov $0x10, %ax
+    mov %ax, %ds
+    
+    pushl %esp
     call isr_handler
     addl $4, %esp
-    ret
+    
+    popl %ds
+    popal
+    addl $8, %esp
+    sti
+    iret
