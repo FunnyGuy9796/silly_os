@@ -26,6 +26,24 @@ void kheap_init() {
     kstatus("debug", "kernel heap initialized\n\tstarting address: 0x%x\n", KHEAP_START);
 }
 
+void ensure_kheap_mapping(void *addr, uint32_t size) {
+    uint32_t start = (uint32_t)addr & ~(PAGE_SIZE - 1);
+    uint32_t end = ((uint32_t)addr + size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+
+    for (uint32_t va = start; va < end; va += PAGE_SIZE) {
+        if (!get_page_entry(page_directory, va)) {
+            int frame = pmm_alloc();
+
+            if (frame == -1)
+                kpanic("ensure_kheap_mapping(): out of memory\n");
+            
+            map_page(page_directory, va, frame * PAGE_SIZE, PAGE_PRESENT | PAGE_RW);
+        }
+    }
+
+    __asm__ volatile("mov %%cr3, %%eax; mov %%eax, %%cr3" ::: "eax", "memory");
+}
+
 void kheap_exp(uint32_t new_size) {
     if (new_size <= heap_end)
         return;
@@ -49,42 +67,60 @@ void kheap_exp(uint32_t new_size) {
 void *kmalloc(uint32_t size, uint8_t align) {
     if (size == 0) return NULL;
 
-    if (align)
-        size = (size + 0xfff) & ~0xfff;
-    
     kheap_block_t* curr = free_list;
     kheap_block_t* prev = NULL;
 
     while (curr) {
         if (curr->free && curr->size >= size) {
-            if (curr->size >= size + sizeof(kheap_block_t) + 4) {
-                kheap_block_t *new_block = (kheap_block_t *)((uint8_t *)curr + sizeof(kheap_block_t) + size);
-                new_block->size = curr->size - size - sizeof(kheap_block_t);
+            ensure_kheap_mapping(curr, sizeof(kheap_block_t) + curr->size + sizeof(void*));
+
+            uint32_t data_addr = (uint32_t)curr + sizeof(kheap_block_t) + sizeof(void*);
+            uint32_t aligned_addr = align ? ((data_addr + 0xFFF) & ~0xFFF) : data_addr;
+            uint32_t padding = aligned_addr - data_addr;
+
+            if (curr->size < size + padding + sizeof(void*))
+                goto next;
+
+            if (padding) {
+                kheap_block_t *padding_block = (kheap_block_t *)((uint8_t *)curr + sizeof(kheap_block_t));
+                padding_block->size = padding - sizeof(kheap_block_t) - sizeof(void*);
+                padding_block->free = 1;
+                padding_block->next = curr->next;
+
+                curr->size = (uint8_t *)padding_block - (uint8_t *)curr - sizeof(kheap_block_t);
+                curr->next = padding_block;
+                curr = padding_block;
+            }
+
+            if (curr->size > size + sizeof(kheap_block_t) + sizeof(void*)) {
+                kheap_block_t *new_block = (kheap_block_t *)(aligned_addr + size + sizeof(void*));
+                new_block->size = curr->size - (size + padding + sizeof(void*) + sizeof(kheap_block_t));
                 new_block->free = 1;
                 new_block->next = curr->next;
 
-                curr->size = size;
+                curr->size = size + padding + sizeof(void*);
                 curr->next = new_block;
             }
 
             curr->free = 0;
 
-            return (void *)((uint8_t *)curr + sizeof(kheap_block_t));
-        }
+            ((kheap_block_t **)aligned_addr)[-1] = curr;
 
+            return (void *)aligned_addr;
+        }
+    next:
         prev = curr;
         curr = curr->next;
     }
 
-    uint32_t expand_size = size + sizeof(kheap_block_t);
-
+    uint32_t expand_size = size + sizeof(kheap_block_t) + sizeof(void*) + (align ? PAGE_SIZE : 0);
     expand_size = (expand_size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
 
     uint32_t old_heap_end = heap_end;
-
     kheap_exp(heap_end + expand_size);
 
     kheap_block_t *new_block = (kheap_block_t *)old_heap_end;
+    ensure_kheap_mapping(new_block, expand_size);
     new_block->size = expand_size - sizeof(kheap_block_t);
     new_block->free = 1;
     new_block->next = NULL;
@@ -93,15 +129,15 @@ void *kmalloc(uint32_t size, uint8_t align) {
         prev->next = new_block;
     else
         free_list = new_block;
-    
-    return (void *)((uint8_t *)new_block + sizeof(kheap_block_t));
+
+    return kmalloc(size, align);
 }
 
 void kfree(void *ptr) {
-    if (!ptr)
-        return;
-    
-    kheap_block_t *block = (kheap_block_t *)((uint8_t *)ptr - sizeof(kheap_block_t));
+    if (!ptr) return;
+
+    kheap_block_t *block = ((kheap_block_t **)ptr)[-1];
+
     block->free = 1;
 
     kheap_block_t *curr = free_list;
@@ -110,7 +146,8 @@ void kfree(void *ptr) {
         if (curr->free && curr->next->free) {
             curr->size += sizeof(kheap_block_t) + curr->next->size;
             curr->next = curr->next->next;
-        } else
+        } else {
             curr = curr->next;
+        }
     }
 }

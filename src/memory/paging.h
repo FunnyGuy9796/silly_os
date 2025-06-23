@@ -32,4 +32,6 @@ uint32_t vaddr_to_paddr(uint32_t *page_directory, uint32_t virt_addr);
 
 void paging_init();
 
+uint32_t *get_page_entry(uint32_t *page_directory, uint32_t virt_addr);
+
 #endif

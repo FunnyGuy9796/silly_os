@@ -28,7 +28,7 @@ void paging_init() {
     cr0 |= 0x80000000;
     asm volatile("mov %0, %%cr0" :: "r"(cr0));
 
-    kstatus("debug", "paging initialized\n\tfirst 4MB of memory identity mapped\n");
+    kstatus("debug", "paging initialized\n");
 }
 
 uint32_t *create_page_table() {
@@ -110,4 +110,17 @@ uint32_t vaddr_to_paddr(uint32_t *page_directory, uint32_t virt_addr) {
         return 0;
     
     return (page_table[table_index] & 0xFFFFF000) | (virt_addr & 0xFFF);
+}
+
+uint32_t *get_page_entry(uint32_t *page_directory, uint32_t virt_addr) {
+    uint32_t dir_index = (virt_addr >> 22) & 0x3FF;
+    uint32_t table_index = (virt_addr >> 12) & 0x3FF;
+
+    if (!(page_directory[dir_index] & PAGE_PRESENT))
+        return NULL;
+
+    uint32_t phys = page_directory[dir_index] & 0xFFFFF000;
+    uint32_t *page_table = (uint32_t *)phys_to_virt(phys);
+
+    return &page_table[table_index];
 }

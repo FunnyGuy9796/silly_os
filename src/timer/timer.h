@@ -10,7 +10,7 @@
 #define PIT_CHANNEL0 0x40
 #define CMOS_ADDR 0x70
 #define CMOS_DATA 0x71
-#define TICKS_PER_SECOND 100
+#define TICKS_PER_SECOND 100 // every 10 milliseconds
 
 typedef struct rtc_time {
     uint8_t seconds;
@@ -19,7 +19,6 @@ typedef struct rtc_time {
     uint8_t day;
     uint8_t month;
     uint16_t year;
-    uint8_t century;
 } rtc_time_t;
 
 void read_rtc_time(rtc_time_t *time);
@@ -33,5 +32,9 @@ uint32_t timer_ticks();
 void update_sys_time();
 
 rtc_time_t get_sys_time();
+
+uint64_t get_epoch_time();
+
+void sleep(uint32_t ms);
 
 #endif

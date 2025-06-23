@@ -1,6 +1,8 @@
 CC = ${HOME}/opt/cross/bin/i686-elf-gcc
 LD = ${HOME}/opt/cross/bin/i686-elf-ld
 
+LIBGCC_PATH = ${HOME}/opt/cross/lib/gcc/i686-elf/15.1.0/libgcc.a
+
 CFLAGS = -m32 -ffreestanding -O0 -Wall -Wextra
 LDFLAGS = -m elf_i386 -T linker.ld
 
@@ -33,7 +35,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.S
 	$(CC) $(CFLAGS) -c $< -o $@
 
 kernel.bin: $(OBJ)
-	$(LD) $(LDFLAGS) -o $@ $(OBJ)
+	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(LIBGCC_PATH)
 
 silly.iso: kernel.bin
 	mkdir -p build/iso/boot/grub
@@ -43,6 +45,9 @@ silly.iso: kernel.bin
 
 run: silly.iso
 	qemu-system-i386 -cdrom silly.iso -m 4G -rtc base=localtime
+
+debug: silly.iso
+	qemu-system-i386 -cdrom silly.iso -monitor stdio -d int,cpu_reset -m 4G -rtc base=localtime -no-reboot -no-shutdown
 
 clean:
 	rm -rf build *.o *.bin *.iso
