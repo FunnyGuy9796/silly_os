@@ -1,5 +1,7 @@
 CC = ${HOME}/opt/cross/bin/i686-elf-gcc
 LD = ${HOME}/opt/cross/bin/i686-elf-ld
+OBJDUMP = ${HOME}/opt/cross/bin/i686-elf-objdump
+ELFREAD = ${HOME}/opt/cross/bin/i686-elf-readelf
 
 LIBGCC_PATH = ${HOME}/opt/cross/lib/gcc/i686-elf/15.1.0/libgcc.a
 
@@ -34,12 +36,12 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.S
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-kernel.bin: $(OBJ)
+kernel.elf: $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(LIBGCC_PATH)
 
-silly.iso: kernel.bin
+silly.iso: kernel.elf
 	mkdir -p build/iso/boot/grub
-	cp kernel.bin build/iso/boot/
+	cp kernel.elf build/iso/boot/
 	cp boot/grub/grub.cfg build/iso/boot/grub/
 	grub2-mkrescue -o silly.iso build/iso
 
@@ -50,4 +52,10 @@ debug: silly.iso
 	qemu-system-i386 -cdrom silly.iso -monitor stdio -d int,cpu_reset -m 4G -rtc base=localtime -no-reboot -no-shutdown
 
 clean:
-	rm -rf build *.o *.bin *.iso
+	rm -rf build *.o *.elf *.iso
+
+dump:
+	$(OBJDUMP) -D kernel.elf
+
+read:
+	${ELFREAD} -a kernel.elf

@@ -1,11 +1,18 @@
 #include "isr.h"
 
+char *exceptions[] = {
+    "division error", "debug", "non-maskable interrupt", "breakpoint", "overflow", "bound range exceeded", "invalid opcode", "device not available",
+    "double fault", "obsolete", "invalid tss", "segment not present", "stack-segment fault", "general protection fault", "page fault", "reserved",
+    "x87 floating-point exception", "alignment check", "machine check", "simd floating-point exception", "virtualization exception", "control protection exception",
+    "reserved", "hypervisor injection exception", "vmm communication exception", "security exception", "reserved"
+};
+
 void isr_handler(registers_t *regs) {
     if (regs->int_no <= 30) {
         kcolor(VGA_RED, VGA_WHITE);
         kclear();
 
-        kprintf("exception %d occurred\n", regs->int_no);
+        kprintf("%s occurred (%d)\n", exceptions[regs->int_no], regs->int_no);
         kprintf("EIP: 0x%x\n", regs->eip);
         kprintf("error code: 0x%x\n", regs->err_code);
 

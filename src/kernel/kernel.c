@@ -11,10 +11,12 @@
 #include "../memory/pmm.h"
 #include "../memory/paging.h"
 #include "../memory/heap.h"
-#include "../multitasking/multitasking.h"
+#include "../threads/threads.h"
 
 extern uint32_t _start;
 extern uint32_t _end;
+
+uint32_t *kernel_sp;
 
 __attribute__((section(".multiboot")))
 unsigned int multiboot_header[] = {
@@ -22,6 +24,10 @@ unsigned int multiboot_header[] = {
     0x00,
     -(0x1badb002 + 0x00)
 };
+
+void save_ksp() {
+    __asm__ volatile("movl %%esp, %0" : "=r"(kernel_sp));
+}
 
 void kinit(multiboot_info_t *mb_info) {
     kstatus("debug", "kernel from 0x%x to 0x%x\n", &_start, &_end);
@@ -39,11 +45,32 @@ void kinit(multiboot_info_t *mb_info) {
     paging_init();
 
     kheap_init();
-
-    scheduler_init();
 }
 
-void kthread() {
+void test1(void *arg) {
+    kprintf("thread 1 starting with arg = %p\n", arg);
+    kprintf("thread 1 exiting\n");
+}
+
+void test2(void *arg) {
+    kprintf("thread 2 starting with arg = %p\n", arg);
+    kprintf("thread 2 exiting\n");
+}
+
+void kmain(uint32_t magic, uint32_t addr) {
+    save_ksp();
+
+    if (magic != 0x2badb002) {
+        kclear();
+        kstatus("error", "invalid magic number: 0x%x\n", magic);
+
+        kpanic("kmain(): invalid magic number\n\tmagic: 0x%x\n", magic);
+    }
+
+    multiboot_info_t *mb_info = (multiboot_info_t *)addr;
+
+    kinit(mb_info);
+
     kprintf("\nsilly OS v%.1f\n\n", 1.0);
 
     rtc_time_t curr_time = get_sys_time();
@@ -71,42 +98,19 @@ void kthread() {
 
     kstatus("info", "current time: %02u-%02u-%02u %02u:%02u:%02u %s\n",
         curr_time.year, curr_time.month, curr_time.day, n_hours, curr_time.minutes, curr_time.seconds, apm);
+    
+    thread_t *t1 = create_thread(test1, (void *)0x1234);
+    thread_t *t2 = create_thread(test1, (void *)0x4321);
+
+    ready_queue = t1;
+    t1->next = t2;
+    t2->next = t1;
+
+    curr_thread = t1;
+
+    switch_thread(&kernel_sp, t1->stack);
 
     while (1) {
         __asm__ volatile ("hlt");
     }
-}
-
-void kmain(uint32_t magic, uint32_t addr) {
-    if (magic != 0x2badb002) {
-        kclear();
-        kstatus("error", "invalid magic number: 0x%x\n", magic);
-
-        kpanic("kmain(): invalid magic number\n\tmagic: 0x%x\n", magic);
-    }
-
-    multiboot_info_t *mb_info = (multiboot_info_t *)addr;
-
-    kinit(mb_info);
-
-    thread_t k_thread;
-
-    new_thread(&k_thread, kthread);
-
-    kstatus("debug", "switching to kernel thread\n");
-
-    cpu_context_t dummy_context;
-
-    kprintf("k_thread.context:\n\tebx: 0x%x  esi: 0x%x  edi: 0x%x\n\tebp: 0x%x  esp: 0x%x  eip: 0x%x\n",
-        k_thread.context.ebx, k_thread.context.esi, k_thread.context.edi, k_thread.context.ebp, k_thread.context.esp, k_thread.context.eip);
-
-    uint32_t *sp = (uint32_t *)k_thread.context.esp;
-    *sp = 0xDEADBEEF;
-
-    kprintf("switching to thread:\n");
-    kprintf("  esp: 0x%08x (stack base: 0x%08x)\n", k_thread.context.esp, (uint32_t)k_thread.stack);
-        
-    switch_context(&dummy_context, &k_thread.context);
-
-    kpanic("kmain(): kernel thread exited\n");
 }
