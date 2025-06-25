@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "../misc/byte.h"
 #include "../display/printf.h"
+#include "../devices/keyboard.h"
 
 #define IDT_ENTRIES 256
 

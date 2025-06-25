@@ -11,7 +11,7 @@
 #include "../memory/pmm.h"
 #include "../memory/paging.h"
 #include "../memory/heap.h"
-#include "../threads/threads.h"
+#include "../shell/shell.h"
 
 extern uint32_t _start;
 extern uint32_t _end;
@@ -24,10 +24,6 @@ unsigned int multiboot_header[] = {
     0x00,
     -(0x1badb002 + 0x00)
 };
-
-void save_ksp() {
-    __asm__ volatile("movl %%esp, %0" : "=r"(kernel_sp));
-}
 
 void kinit(multiboot_info_t *mb_info) {
     kstatus("debug", "kernel from 0x%x to 0x%x\n", &_start, &_end);
@@ -45,21 +41,33 @@ void kinit(multiboot_info_t *mb_info) {
     paging_init();
 
     kheap_init();
+
+    keyboard_init();
 }
 
 void test1(void *arg) {
     kprintf("thread 1 starting with arg = %p\n", arg);
+
+    for (int i = 0; i < 10; i++) {
+        kprintf("thread 1: %d\n", i);
+        sleep(1000);
+    }
+
     kprintf("thread 1 exiting\n");
 }
 
 void test2(void *arg) {
     kprintf("thread 2 starting with arg = %p\n", arg);
+
+    for (int i = 0; i < 10; i++) {
+        kprintf("thread 2: %d\n", i);
+        sleep(1000);
+    }
+
     kprintf("thread 2 exiting\n");
 }
 
 void kmain(uint32_t magic, uint32_t addr) {
-    save_ksp();
-
     if (magic != 0x2badb002) {
         kclear();
         kstatus("error", "invalid magic number: 0x%x\n", magic);
@@ -71,46 +79,5 @@ void kmain(uint32_t magic, uint32_t addr) {
 
     kinit(mb_info);
 
-    kprintf("\nsilly OS v%.1f\n\n", 1.0);
-
-    rtc_time_t curr_time = get_sys_time();
-    char *apm = "AM";
-    uint8_t n_hours = curr_time.hours;
-
-    if (curr_time.hours > 12) {
-        n_hours -= 12;
-        apm = "PM";
-    }
-
-    kstatus("info", "current time: %02u-%02u-%02u %02u:%02u:%02u %s\n",
-        curr_time.year, curr_time.month, curr_time.day, n_hours, curr_time.minutes, curr_time.seconds, apm);
-
-    sleep(5000);
-
-    curr_time = get_sys_time();
-    apm = "AM";
-    n_hours = curr_time.hours;
-
-    if (curr_time.hours > 12) {
-        n_hours -= 12;
-        apm = "PM";
-    }
-
-    kstatus("info", "current time: %02u-%02u-%02u %02u:%02u:%02u %s\n",
-        curr_time.year, curr_time.month, curr_time.day, n_hours, curr_time.minutes, curr_time.seconds, apm);
-    
-    thread_t *t1 = create_thread(test1, (void *)0x1234);
-    thread_t *t2 = create_thread(test1, (void *)0x4321);
-
-    ready_queue = t1;
-    t1->next = t2;
-    t2->next = t1;
-
-    curr_thread = t1;
-
-    switch_thread(&kernel_sp, t1->stack);
-
-    while (1) {
-        __asm__ volatile ("hlt");
-    }
+    shell_init();
 }

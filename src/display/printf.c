@@ -178,3 +178,10 @@ void kstatus(const char *category, const char *format, ...) {
 
     va_end(args);
 }
+
+void kprompt(const char *user) {
+    kcolor(VGA_BLACK, VGA_GREEN);
+    kprintf("%s", user);
+    kcolor(VGA_BLACK, VGA_WHITE);
+    kprintf("$ ");
+}

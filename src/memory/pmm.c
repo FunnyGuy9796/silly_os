@@ -6,6 +6,7 @@ uint32_t total_memory = 0;
 uint32_t frame_size = 4096;
 uint32_t num_frames;
 uint32_t bitmap_size;
+uint32_t used_frames = 0;
 
 static uint32_t last_alloc = 0;
 
@@ -72,6 +73,7 @@ int32_t pmm_alloc() {
         if (pmm_test(i) == 0) {
             pmm_set(i);
             
+            used_frames++;
             last_alloc = i + 1;
 
             return i;
@@ -84,6 +86,7 @@ int32_t pmm_alloc() {
         if (pmm_test(i) == 0) {
             pmm_set(i);
 
+            used_frames++;
             last_alloc = i + 1;
 
             return i;
@@ -94,6 +97,7 @@ int32_t pmm_alloc() {
         if (pmm_test(i) == 0) {
             pmm_set(i);
 
+            used_frames++;
             last_alloc = i + 1;
 
             return i;
@@ -110,8 +114,23 @@ void pmm_free(uint32_t frame_index) {
         return;
     }
 
-    pmm_clear(frame_index);
+    if (pmm_test(frame_index)) {
+        pmm_clear(frame_index);
+        used_frames--;
 
-    if (frame_index < last_alloc)
-        last_alloc = frame_index;
+        if (frame_index < last_alloc)
+            last_alloc = frame_index;
+    }
+}
+
+uint32_t get_mem_total() {
+    return total_memory;
+}
+
+uint32_t get_used_mem() {
+    return used_frames * frame_size;
+}
+
+uint32_t get_free_mem() {
+    return (num_frames - used_frames) * frame_size;
 }

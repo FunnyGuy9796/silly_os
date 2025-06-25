@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include "../misc/byte.h"
 #include "../display/printf.h"
-#include "../threads/threads.h"
 
 #define PIT_FREQUENCY 1193182
 #define PIT_COMMAND 0x43
@@ -35,6 +34,8 @@ void update_sys_time();
 rtc_time_t get_sys_time();
 
 uint64_t get_epoch_time();
+
+uint64_t get_uptime();
 
 void sleep(uint32_t ms);
 

@@ -27,6 +27,9 @@ isr_dummy:
 .global isr30
 .global isr32
 
+.global isr33
+.extern keyboard_isr
+
 .section .text
 
 .macro ISR_NO_ERR_CODE num
@@ -85,4 +88,11 @@ isr_common_stub:
     popal
     addl $8, %esp
     sti
+    iret
+
+isr33:
+    pusha
+    call keyboard_isr
+    popa
+
     iret

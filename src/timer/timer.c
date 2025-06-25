@@ -167,8 +167,6 @@ void timer_callback() {
 
         update_sys_time();
     }
-
-    schedule();
 }
 
 uint32_t timer_ticks() {
@@ -221,6 +219,10 @@ rtc_time_t get_sys_time() {
 
 uint64_t get_epoch_time() {
     return rtc_to_epoch(&curr_time);
+}
+
+uint64_t get_uptime() {
+    return uptime_ticks;
 }
 
 void sleep(uint32_t ms) {

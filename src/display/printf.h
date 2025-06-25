@@ -14,4 +14,6 @@ void kprintf(const char *format, ...);
 
 void kstatus(const char *category, const char *format, ...);
 
+void kprompt(const char *user);
+
 #endif
