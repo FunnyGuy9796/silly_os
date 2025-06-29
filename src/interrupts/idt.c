@@ -70,8 +70,8 @@ void idt_init() {
     idt_set_gate(28, (uint32_t)isr28, 0x08, 0x8e);
     idt_set_gate(29, (uint32_t)isr29, 0x08, 0x8e);
     idt_set_gate(30, (uint32_t)isr30, 0x08, 0x8e);
+    
     idt_set_gate(32, (uint32_t)isr32, 0x08, 0x8e);
-
     idt_set_gate(33, (uint32_t)isr33, 0x08, 0x8e);
     
     idt_load((uint32_t)&idtp);

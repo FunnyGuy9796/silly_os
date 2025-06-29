@@ -1,0 +1,3 @@
+Welcome to SillyOS. This is a project that honestly
+has no purpose other than to just be a silly adventure
+into system-level programming and random sections of OS development.

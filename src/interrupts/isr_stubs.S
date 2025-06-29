@@ -26,9 +26,7 @@ isr_dummy:
 .global isr29
 .global isr30
 .global isr32
-
 .global isr33
-.extern keyboard_isr
 
 .section .text
 
@@ -36,7 +34,7 @@ isr_dummy:
 isr\num:
     cli
     pushl $0
-    pushl $\num       # Push interrupt number
+    pushl $\num
     jmp isr_common_stub
 .endm
 
@@ -61,6 +59,7 @@ ISR_NO_ERR_CODE 19
 ISR_NO_ERR_CODE 20
 ISR_NO_ERR_CODE 28
 ISR_NO_ERR_CODE 32
+ISR_NO_ERR_CODE 33
 ISR_ERR_CODE 8
 ISR_ERR_CODE 10
 ISR_ERR_CODE 11
@@ -88,11 +87,4 @@ isr_common_stub:
     popal
     addl $8, %esp
     sti
-    iret
-
-isr33:
-    pusha
-    call keyboard_isr
-    popa
-
     iret

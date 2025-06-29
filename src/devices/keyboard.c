@@ -25,7 +25,7 @@ void keyboard_init() {
     kstatus("debug", "keyboard initialized\n");
 }
 
-void keyboard_isr() {
+void keyboard_callback() {
     uint8_t scancode = inb(0x60);
 
     if (scancode & 0x80) {
@@ -68,14 +68,22 @@ void keyboard_isr() {
 }
 
 void keyboard_read_line(char *buf, int max_len) {
+    DISABLE_INTERRUPTS();
     buffer_index = 0;
     input_ready = 0;
+    ENABLE_INTERRUPTS();
 
     while (!input_ready)
         __asm__ volatile ("hlt");
+    
+    DISABLE_INTERRUPTS();
     
     for (int i = 0; i < buffer_index && i < max_len - 1; i++)
         buf[i] = keyboard_buffer[i];
     
     buf[buffer_index < max_len ? buffer_index : max_len - 1] = '\0';
+
+    memset((void *)keyboard_buffer, 0, KEYBOARD_BUFFER_SIZE);
+
+    ENABLE_INTERRUPTS();
 }

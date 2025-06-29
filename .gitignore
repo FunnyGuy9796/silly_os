@@ -1,4 +1,5 @@
 /build
 /kernel.elf
 /silly.iso
+/initrd.tar
 /.vscode

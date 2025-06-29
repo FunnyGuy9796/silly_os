@@ -2,10 +2,12 @@
 #define ISR_H
 
 #include <stdint.h>
+#include "../kernel/elf.h"
 #include "../display/display.h"
 #include "../display/printf.h"
 #include "../pic/pic.h"
 #include "../timer/timer.h"
+#include "../devices/keyboard.h"
 
 typedef struct regs {
     uint32_t ds;

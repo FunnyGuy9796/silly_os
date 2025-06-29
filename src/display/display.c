@@ -108,3 +108,13 @@ void kprint(const char *message) {
         kputc(message[i]);
     }
 }
+
+void buf_kputc(char **buf_ptr, size_t *remaining, char c, int *count) {
+    if (*remaining > 1) {
+        **buf_ptr = c;
+        (*buf_ptr)++;
+        (*remaining)--;
+    }
+
+    (*count)++;
+}

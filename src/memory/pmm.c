@@ -57,15 +57,28 @@ void pmm_init(multiboot_info_t *mb_info, uint32_t k_end) {
     }
 
     uint32_t kernel_frames = (aligned_k_end + bitmap_size + frame_size - 1) / frame_size;
-    for (uint32_t i = 0; i < kernel_frames; i++) {
+    for (uint32_t i = 0; i < kernel_frames; i++)
         pmm_set(i);
+
+    for (uint32_t i = 0; i < 256; i++)
+        pmm_set(i);
+
+    if (mb_info->flags & (1 << 3)) {
+        multiboot_module_t *modules = (multiboot_module_t *)mb_info->mods_addr;
+
+        for (uint32_t i = 0; i < mb_info->mods_count; i++) {
+            uint32_t mod_start = modules[i].mod_start;
+            uint32_t mod_end = modules[i].mod_end;
+
+            uint32_t start_frame = mod_start / frame_size;
+            uint32_t end_frame = (mod_end + frame_size - 1) / frame_size;
+
+            for (uint32_t j = start_frame; j < end_frame; j++)
+                pmm_set(j);
+        }
     }
 
-    for (uint32_t i = 0; i < 256; i++) {
-        pmm_set(i);
-    }
-
-    kstatus("debug", "pmm initialized\n\tbitmap stored at address: 0x%x\n\ttotal available memory: %.2fGB\n", aligned_k_end, (double)total_memory / 1073741824.0);
+    kstatus("debug", "pmm initialized\n\tbitmap stored at address: 0x%x\n\tend address: 0x%x\n\ttotal available memory: %.2fGB\n", aligned_k_end, aligned_k_end + bitmap_size, (double)total_memory / 1073741824.0);
 }
 
 int32_t pmm_alloc() {

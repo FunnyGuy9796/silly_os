@@ -25,4 +25,6 @@ void *kmalloc(uint32_t size, uint8_t align);
 
 void kfree(void *ptr);
 
+void *krealloc(void *ptr, uint32_t new_size);
+
 #endif

@@ -5,8 +5,8 @@ ELFREAD = ${HOME}/opt/cross/bin/i686-elf-readelf
 
 LIBGCC_PATH = ${HOME}/opt/cross/lib/gcc/i686-elf/15.1.0/libgcc.a
 
-CFLAGS = -m32 -ffreestanding -O0 -Wall -Wextra
-LDFLAGS = -m elf_i386 -T linker.ld
+CFLAGS = -m32 -ffreestanding -O0 -g -Wall -Wextra
+LDFLAGS = -m elf_i386 -T linker.ld --no-gc-sections
 
 SRC_DIR := src
 BUILD_DIR := build/obj
@@ -42,6 +42,8 @@ kernel.elf: $(OBJ)
 silly.iso: kernel.elf
 	mkdir -p build/iso/boot/grub
 	cp kernel.elf build/iso/boot/
+	tar --format=ustar -cvf initrd.tar initrd
+	cp initrd.tar build/iso/boot/
 	cp boot/grub/grub.cfg build/iso/boot/grub/
 	grub2-mkrescue -o silly.iso build/iso
 
@@ -52,10 +54,10 @@ debug: silly.iso
 	qemu-system-i386 -cdrom silly.iso -monitor stdio -d int,cpu_reset -m 4G -rtc base=localtime -no-reboot -no-shutdown
 
 clean:
-	rm -rf build *.o *.elf *.iso
+	rm -rf build *.o *.elf *.iso *.tar
 
 dump:
 	$(OBJDUMP) -D kernel.elf
 
 read:
-	${ELFREAD} -a kernel.elf
+	${ELFREAD} -s kernel.elf

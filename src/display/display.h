@@ -43,4 +43,6 @@ void kputc(const char c);
 
 void kprint(const char *message);
 
+void buf_kputc(char **buf_ptr, size_t *remaining, char c, int *count);
+
 #endif

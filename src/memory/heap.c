@@ -151,3 +151,76 @@ void kfree(void *ptr) {
         }
     }
 }
+
+void *krealloc(void *ptr, uint32_t new_size) {
+    if (!ptr)
+        return kmalloc(new_size, 0);
+
+    if (new_size == 0) {
+        kfree(ptr);
+
+        return NULL;
+    }
+
+    kheap_block_t *block = ((kheap_block_t **)ptr)[-1];
+    uint32_t old_size = block->size - sizeof(void*);
+
+    if (new_size <= old_size) {
+        uint32_t excess_size = old_size - new_size;
+
+        if (excess_size > sizeof(kheap_block_t) + sizeof(void*)) {
+            kheap_block_t *new_block = (kheap_block_t *)((uint8_t *)ptr + new_size);
+
+            new_block->size = excess_size - sizeof(kheap_block_t);
+            new_block->free = 1;
+            new_block->next = block->next;
+
+            block->size = new_size + sizeof(void*);
+            block->next = new_block;
+
+            kheap_block_t *curr = free_list;
+
+            while (curr && curr->next) {
+                if (curr->free && curr->next->free) {
+                    curr->size += sizeof(kheap_block_t) + curr->next->size;
+                    curr->next = curr->next->next;
+                } else
+                    curr = curr->next;
+            }
+        }
+
+        return ptr;
+    } else {
+        kheap_block_t *next_block = block->next;
+
+        if (next_block && next_block->free &&
+            (block->size + sizeof(kheap_block_t) + next_block->size) >= (new_size + sizeof(void*))) {
+
+            block->size += sizeof(kheap_block_t) + next_block->size;
+            block->next = next_block->next;
+
+            uint32_t excess_size = block->size - (new_size + sizeof(void*));
+
+            if (excess_size > sizeof(kheap_block_t) + sizeof(void*)) {
+                kheap_block_t *new_block = (kheap_block_t *)((uint8_t *)ptr + new_size);
+                new_block->size = excess_size - sizeof(kheap_block_t);
+                new_block->free = 1;
+                new_block->next = block->next;
+
+                block->size = new_size + sizeof(void*);
+                block->next = new_block;
+            }
+
+            return ptr;
+        } else {
+            void *new_ptr = kmalloc(new_size, 0);
+
+            if (!new_ptr) return NULL;
+
+            memcpy(new_ptr, ptr, old_size);
+            kfree(ptr);
+
+            return new_ptr;
+        }
+    }
+}

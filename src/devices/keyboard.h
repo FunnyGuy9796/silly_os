@@ -4,20 +4,24 @@
 #include <stdint.h>
 #include "../display/printf.h"
 #include "../misc/byte.h"
+#include "../misc/mem.h"
 #include "../pic/pic.h"
 
 #define KEYBOARD_IRQ 1
 #define KEYBOARD_BUFFER_SIZE 256
 
-static char keyboard_buffer[KEYBOARD_BUFFER_SIZE];
-static int buffer_index = 0;
-static int input_ready = 0;
+#define DISABLE_INTERRUPTS() __asm__ volatile("cli")
+#define ENABLE_INTERRUPTS()  __asm__ volatile("sti")
 
-static int shift_pressed = 0;
+static volatile char keyboard_buffer[KEYBOARD_BUFFER_SIZE];
+static volatile int buffer_index = 0;
+static volatile int input_ready = 0;
+
+static volatile int shift_pressed = 0;
 
 void keyboard_init();
 
-void keyboard_isr();
+void keyboard_callback();
 
 void keyboard_read_line(char *buf, int max_len);
 

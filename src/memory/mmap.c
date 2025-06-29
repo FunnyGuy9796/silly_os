@@ -16,8 +16,6 @@ uint32_t get_mmap(multiboot_info_t *mb_info) {
 
         return total_memory;
     } else
-        kstatus("warn", "no memory map found\n");
-
         kpanic("get_mmap(): no memory map found\n");
 
     return 0;
