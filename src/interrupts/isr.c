@@ -28,8 +28,7 @@ void isr_handler(registers_t *regs) {
             kprintf("CR2: 0x%08x\n", faulting_addr);
         }
 
-        uint32_t offset;
-        const char *sym_name = get_symbol(regs->eip, &offset);
+        const char *sym_name = get_symbol(regs->eip);
 
         kprintf("\nexception at 0x%08x -> %s()\n", regs->eip, sym_name);
 

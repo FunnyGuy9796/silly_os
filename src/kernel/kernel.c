@@ -13,6 +13,7 @@
 #include "../memory/paging.h"
 #include "../memory/heap.h"
 #include "../initrd/initrd.h"
+#include "../module/module.h"
 #include "../misc/day.h"
 
 extern uint32_t _start;
@@ -64,6 +65,13 @@ void kinit(multiboot_info_t *mb_info) {
     keyboard_init();
 
     initrd_load(mb_info);
+
+    uint32_t size;
+
+    void *data = read_file("initrd/modules/test.ko", &size);
+
+    if (load_module(data) != 0)
+        kstatus("error", "kinit(): failed to load module\n");
 }
 
 void kmain(uint32_t magic, uint32_t addr) {
