@@ -3,6 +3,7 @@
 
 #include "../../src/display/printf.h"
 #include "../../src/memory/heap.h"
+#include "../../src/initrd/initrd.h"
 #include "../../src/kernel/panic.h"
 
 #endif

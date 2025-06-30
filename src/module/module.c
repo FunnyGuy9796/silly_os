@@ -78,20 +78,23 @@ int load_module(void *module_base) {
 
                 sym_addr = get_symbol_addr(sym_name);
 
-                if (!sym_addr) {
-                    kstatus("error", "undefined symbol: %s\n", sym_name);
-
-                    return 1;
-                }
+                if (!sym_addr) return 1;
             } else
                 sym_addr = (uint8_t *)section_addrs[sym->st_shndx] + sym->st_value;
 
-            if (rel_type == R_386_32)
-                *patch_addr = (uint32_t)sym_addr;
-            else if (rel_type == R_386_PC32)
-                *patch_addr = (uint32_t)sym_addr - (uint32_t)patch_addr - 4;
-            else
-                kstatus("warn", "unhandled relocation type %d\n", rel_type);
+            if (rel_type == R_386_32) {
+                uint32_t a = *patch_addr;
+                uint32_t s = (uint32_t)sym_addr;
+
+                *patch_addr = s + a;
+            } else if (rel_type == R_386_PC32) {
+                uint32_t a = *patch_addr;
+                uint32_t s = (uint32_t)sym_addr;
+                uint32_t p = (uint32_t)patch_addr;
+
+                *patch_addr = (s + a) - p;
+            } else
+                kstatus("warn", "load_module(): unhandled relocation type %d\n", rel_type);
         }
     }
 

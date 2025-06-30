@@ -66,8 +66,9 @@ void kinit(multiboot_info_t *mb_info) {
 
     initrd_load(mb_info);
 
-    uint32_t size;
+    kprintf("\n");
 
+    uint32_t size;
     void *data = read_file("initrd/modules/test.ko", &size);
 
     if (load_module(data) != 0)

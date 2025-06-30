@@ -168,9 +168,10 @@ void kstatus(const char *category, const char *format, ...) {
     else
         kcolor(VGA_BLACK, VGA_WHITE);
 
-    kprintf("[");
-    kprintf(category);
-    kprintf("] ");
+    kputc('[');
+    kprint(category);
+    kputc(']');
+    kputc(' ');
 
     kcolor(VGA_BLACK, VGA_WHITE);
 

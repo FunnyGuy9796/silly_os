@@ -9,6 +9,14 @@ int called = 0;
 
 ksymbol_t kernel_symbols[] = {
     { "kprintf", kprintf },
+    { "kstatus", kstatus },
+    { "kpanic", kpanic },
+    { "ksnprintf", ksnprintf },
+    { "kmalloc", kmalloc },
+    { "kfree", kfree },
+    { "krealloc", krealloc },
+    { "list_tar", list_tar },
+    { "read_file", read_file },
     { NULL, NULL }
 };
 

@@ -6,6 +6,8 @@
 #include "multiboot.h"
 #include "../misc/string.h"
 #include "../display/printf.h"
+#include "../memory/heap.h"
+#include "../initrd/initrd.h"
 
 #define EI_MAG0       0 /* 0x7F */
 #define EI_MAG1       1 /* 'E'  */
