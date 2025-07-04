@@ -1,6 +1,6 @@
 #include "module.h"
 
-int load_module(void *module_base) {
+int load_module(void *module_base, module_t *module) {
     Elf32_Ehdr *ehdr;
     Elf32_Shdr *shdrs;
     const char *shstrtab;
@@ -115,25 +115,61 @@ int load_module(void *module_base) {
             const char *sym_name = strtab + sym->st_name;
 
             if (strcmp(sym_name, "module_init") == 0) {
-                void (*init_func)(void) = (void (*)(void))((uint8_t *)section_addrs[sym->st_shndx] + sym->st_value);
+                module->init_func = (void (*)(struct Module *))((uint8_t *)section_addrs[sym->st_shndx] + sym->st_value);
 
-                uint8_t *code = (uint8_t *)init_func;
+                uint8_t *code = (uint8_t *)module->init_func;
 
                 for (int i = 0; i < 16; i++) {
                     if (code[i] == 0xe8) {
-                        int32_t rel_offset = *(int32_t *)&code[i+1];
+                        int32_t rel_offset = *(int32_t *)&code[i + 1];
                         void *target = &code[i + 5] + rel_offset;
                     }
                 }
 
-                init_func();
+                module->section_headers = section_addrs;
+                module->num_sections = ehdr->e_shnum;
 
-                return 0;
+                kprintf("%s -- module loaded successfully\n", module->file_path);
+            }
+
+            if (strcmp(sym_name, "module_exit") == 0) {
+                module->exit_func = (void (*)(struct Module *))((uint8_t *)section_addrs[sym->st_shndx] + sym->st_value);
+
+                uint8_t *code = (uint8_t *)module->exit_func;
+
+                for (int i = 0; i < 16; i++) {
+                    if (code[i] == 0xe8) {
+                        int32_t rel_offset = *(int32_t *)&code[i + 1];
+                        void *target = &code[i + 5] + rel_offset;
+                    }
+                }
             }
         }
     }
 
+    if (module->init_func && module->exit_func)
+        return 0;
+
+    module->section_headers = section_addrs;
+    module->num_sections = ehdr->e_shnum;
+
     kstatus("warn", "no module_init symbol found\n");
 
-    return 0;
+    return 1;
+}
+
+void unload_module(module_t *module) {
+    if (!module || !module->section_headers) return;
+
+    for (uint16_t i = 0; i < module->num_sections; i++) {
+        if (module->section_headers[i])
+            kfree(module->section_headers[i]);
+    }
+
+    kfree(module->section_headers);
+
+    kprintf("%s -- module unloaded successfully\n", module->file_path);
+
+    module->section_headers = NULL;
+    module->num_sections = 0;
 }

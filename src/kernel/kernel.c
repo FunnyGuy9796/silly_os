@@ -14,12 +14,11 @@
 #include "../memory/heap.h"
 #include "../initrd/initrd.h"
 #include "../module/module.h"
+#include "../threads/threads.h"
 #include "../misc/day.h"
 
 extern uint32_t _start;
 extern uint32_t _end;
-
-char input[128];
 
 #define MULTIBOOT_MAGIC 0x1badb002
 #define MULTIBOOT_FLAGS 0x03
@@ -31,6 +30,32 @@ unsigned int multiboot_header[] = {
     MULTIBOOT_FLAGS,
     MULTIBOOT_CHECKSUM
 };
+
+void kidle() {
+    kstatus("debug", "entered idle thread\n\tcurr_thread = %d\n\tthread_count = %d\n", curr_thread->id, thread_count);
+
+    while (1)
+        __asm__ volatile("hlt");
+}
+
+void ksetup() {
+    module_t init_mod;
+    init_mod.file_path = "initrd/modules/init/init.ko";
+    
+    uint32_t size;
+    void *data = read_file(init_mod.file_path, &size);
+
+    if (load_module(data, &init_mod) != 0)
+        kstatus("error", "kinit(): failed to load module\n");
+    else {
+        init_mod.init_func(&init_mod);
+        init_mod.exit_func(&init_mod);
+        
+        unload_module(&init_mod);
+    }
+
+    thread_exit();
+}
 
 void kinit(multiboot_info_t *mb_info) {
     if (!(mb_info->flags & (1 << 3)))
@@ -66,13 +91,17 @@ void kinit(multiboot_info_t *mb_info) {
 
     initrd_load(mb_info);
 
-    kprintf("\n");
+    kclear();
+    
+    idle_thread = create_thread(&kidle);
+    thread_t *init_thread = create_thread(&ksetup);
 
-    uint32_t size;
-    void *data = read_file("initrd/modules/test.ko", &size);
+    scheduler_init(idle_thread);
 
-    if (load_module(data) != 0)
-        kstatus("error", "kinit(): failed to load module\n");
+    kstatus("debug", "waiting for scheduler\n");
+
+    while (1)
+        __asm__ volatile("hlt");
 }
 
 void kmain(uint32_t magic, uint32_t addr) {
@@ -82,22 +111,4 @@ void kmain(uint32_t magic, uint32_t addr) {
         kpanic("kmain(): invalid magic number\n\tmagic: 0x%x\n", magic);
 
     kinit(mb_info);
-
-    char *day[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-    char *month[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-    rtc_time_t curr_time = get_sys_time();
-    char *apm = "AM";
-    uint8_t n_hours = curr_time.hours;
-    int day_num = get_day(curr_time.day, curr_time.month, curr_time.year);
-
-    if (curr_time.hours > 12) {
-        n_hours -= 12;
-        apm = "PM";
-    } else if (curr_time.hours == 0)
-        n_hours = 12;
-    
-    kprintf("\n");
-
-    kstatus("info", "%s %s %d %02u:%02u:%02u %s %02u\n",
-        day[day_num], month[curr_time.month - 1], curr_time.day, n_hours, curr_time.minutes, curr_time.seconds, apm, curr_time.year);
 }

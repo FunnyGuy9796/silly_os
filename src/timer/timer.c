@@ -167,6 +167,8 @@ void timer_callback() {
 
         update_sys_time();
     }
+
+    schedule();
 }
 
 uint32_t timer_ticks() {

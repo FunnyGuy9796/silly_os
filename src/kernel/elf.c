@@ -5,8 +5,6 @@ uint32_t elf_size;
 uint32_t elf_addr;
 uint32_t elf_shndx;
 
-int called = 0;
-
 ksymbol_t kernel_symbols[] = {
     { "kprintf", kprintf },
     { "kstatus", kstatus },
@@ -17,6 +15,10 @@ ksymbol_t kernel_symbols[] = {
     { "krealloc", krealloc },
     { "list_tar", list_tar },
     { "read_file", read_file },
+    { "load_module", load_module },
+    { "unload_module", unload_module },
+    { "get_sys_time", get_sys_time },
+    { "get_day", get_day },
     { NULL, NULL }
 };
 

@@ -11,7 +11,7 @@ static inline int get_day(int day, int month, int year) {
     int j = year / 100;
     int h = (day + (13 * (month + 1)) / 5 + k + k / 4 + j / 4 + 5 * j) % 7;
 
-    return h;
+    return h - 1;
 }
 
 #endif

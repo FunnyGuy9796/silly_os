@@ -5,9 +5,12 @@
 #include <stddef.h>
 #include "multiboot.h"
 #include "../misc/string.h"
+#include "../misc/day.h"
 #include "../display/printf.h"
 #include "../memory/heap.h"
 #include "../initrd/initrd.h"
+#include "../module/module.h"
+#include "../timer/timer.h"
 
 #define EI_MAG0       0 /* 0x7F */
 #define EI_MAG1       1 /* 'E'  */
@@ -96,8 +99,6 @@ typedef struct {
     const char *name;
     void *addr;
 } ksymbol_t;
-
-extern int called;
 
 void elf_init(multiboot_info_t *mb_info);
 

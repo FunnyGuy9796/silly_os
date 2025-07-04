@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "../misc/byte.h"
 #include "../display/printf.h"
+#include "../threads/threads.h"
 
 #define PIT_FREQUENCY 1193182
 #define PIT_COMMAND 0x43

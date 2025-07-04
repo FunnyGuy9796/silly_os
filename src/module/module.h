@@ -7,6 +7,16 @@
 #include "../kernel/elf.h"
 #include "../memory/heap.h"
 
-int load_module(void *module_base);
+typedef struct Module {
+    void **section_headers;
+    uint16_t num_sections;
+    void (*init_func)(struct Module *);
+    void (*exit_func)(struct Module *);
+    char *file_path;
+} module_t;
+
+int load_module(void *module_base, module_t *module);
+
+void unload_module(module_t *module);
 
 #endif
